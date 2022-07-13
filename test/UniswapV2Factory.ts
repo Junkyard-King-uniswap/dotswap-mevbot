@@ -73,11 +73,11 @@ describe('UniswapV2Factory', () => {
     await createPair(TEST_ADDRESSES.slice().reverse() as [string, string])
   })
 
-  // it('createPair:gas', async () => {
-  //   const tx = await factory.createPair(...TEST_ADDRESSES)
-  //   const receipt = await tx.wait()
-  //   expect(receipt.gasUsed).to.eq(2512920)
-  // })
+  it('createPair:gas', async () => {
+    const tx = await factory.createPair(...TEST_ADDRESSES)
+    const receipt = await tx.wait()
+    expect(receipt.gasUsed).to.eq(2029585)
+  })
 
   it('setFeeTo', async () => {
     await expect(

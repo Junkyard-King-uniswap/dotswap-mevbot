@@ -21,7 +21,7 @@ describe('UniswapV2Pair', () => {
   let token1: UniswapV2ERC20
   let pair: UniswapV2Pair
   let wallet: SignerWithAddress, other: SignerWithAddress
-  //   let provider: Exclude<typeof wallet.provider, undefined>
+  let provider: Exclude<typeof wallet.provider, undefined>
 
   const AddressZero = constants.AddressZero
 
@@ -56,9 +56,9 @@ describe('UniswapV2Pair', () => {
       ;[token0, token1] = [tokenB, tokenA]
     }
 
-    // if (wallet.provider) {
-    //   provider = wallet.provider
-    // }
+    if (wallet.provider) {
+      provider = wallet.provider
+    }
   })
 
   it('mint', async () => {
@@ -252,35 +252,35 @@ describe('UniswapV2Pair', () => {
     )
   })
 
-  //   it('swap:gas', async () => {
-  //     const token0Amount = expandTo18Decimals(5)
-  //     const token1Amount = expandTo18Decimals(10)
-  //     await addLiquidity(token0Amount, token1Amount)
+  it('swap:gas', async () => {
+    const token0Amount = expandTo18Decimals(5)
+    const token1Amount = expandTo18Decimals(10)
+    await addLiquidity(token0Amount, token1Amount)
 
-  //     // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
-  //     await mineBlock(
-  //       network.provider,
-  //       (await provider.getBlock('latest')).timestamp + 1
-  //     )
-  //     await pair.sync(overrides)
+    // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
+    await mineBlock(
+      network.provider,
+      (await provider.getBlock('latest')).timestamp + 1
+    )
+    await pair.sync(overrides)
 
-  //     const swapAmount = expandTo18Decimals(1)
-  //     const expectedOutputAmount = bigNumberify('453305446940074565')
-  //     await token1.transfer(pair.address, swapAmount)
-  //     await mineBlock(
-  //       network.provider,
-  //       (await provider.getBlock('latest')).timestamp + 1
-  //     )
-  //     const tx = await pair.swap(
-  //       expectedOutputAmount,
-  //       0,
-  //       wallet.address,
-  //       '0x',
-  //       overrides
-  //     )
-  //     const receipt = await tx.wait()
-  //     expect(receipt.gasUsed).to.eq(73462)
-  //   })
+    const swapAmount = expandTo18Decimals(1)
+    const expectedOutputAmount = bigNumberify('453305446940074565')
+    await token1.transfer(pair.address, swapAmount)
+    await mineBlock(
+      network.provider,
+      (await provider.getBlock('latest')).timestamp + 1
+    )
+    const tx = await pair.swap(
+      expectedOutputAmount,
+      0,
+      wallet.address,
+      '0x',
+      overrides
+    )
+    const receipt = await tx.wait()
+    expect(receipt.gasUsed).to.eq(73673)
+  })
 
   it('burn', async () => {
     const token0Amount = expandTo18Decimals(3)
