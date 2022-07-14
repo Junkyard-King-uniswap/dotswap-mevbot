@@ -1,30 +1,67 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-import { ethers } from "hardhat";
+import { constants } from 'ethers'
+import { ethers, run } from 'hardhat'
 
-async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
-
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
-
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
+export interface DeployItem {
+  name: string
+  params: any[]
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+export interface DeployAndVerifyOptions {
+  delayTimer?: number
+}
+
+export async function deploy(item: DeployItem): Promise<string> {
+  try {
+    console.log(`[deploy] starting deploy contract ${item.name}`)
+    const factory = await ethers.getContractFactory(item.name)
+    if (!factory) {
+      return constants.AddressZero
+    }
+
+    const contract = await factory.deploy.apply(factory, item.params)
+    await contract.deployed()
+    console.log(
+      `[deploy] success deploy contract ${item.name} to ${contract.address}`
+    )
+    return contract.address
+  } catch (error) {
+    console.error(
+      `[deploy] failed deploy contract ${item.name} [reason: ${error}]`
+    )
+    return constants.AddressZero
+  }
+}
+
+export async function verify(item: DeployItem, address: string) {
+  try {
+    console.log(`[verify] starting verify contract ${item.name}`)
+    await run('verify:verify', {
+      address: address,
+      constructorArguments: item.params,
+    })
+    console.log(`[verify] success verify contract ${item.name}:${address}`)
+  } catch (error) {
+    console.error(
+      `[verify] failed verify contract ${item.name}:${address} [reason: ${error}]`
+    )
+  }
+}
+
+export async function deployAndVerify(
+  item: DeployItem,
+  options?: DeployAndVerifyOptions
+): Promise<string> {
+  const address = await deploy(item)
+  if (address === constants.AddressZero) {
+    return address
+  }
+  options && options.delayTimer && (await delay(options.delayTimer))
+  await verify(item, address)
+  return address
+}
+
+async function delay(time: number) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, time)
+  })
+}
