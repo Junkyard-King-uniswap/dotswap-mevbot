@@ -4,16 +4,11 @@ import { BigNumber, constants } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { ethers, network } from 'hardhat'
 import { UniswapV2ERC20, UniswapV2Factory, UniswapV2Pair } from '../typechain'
-import { encodePrice, mineBlock } from './shared/utillities'
+import { bigNumberify, encodePrice, expandTo18Decimals, mineBlock, MINIMUM_LIQUIDITY } from './shared/utillities'
 
 const overrides = {
   gasLimit: 9999999,
 }
-
-const expandTo18Decimals = (value: number) => parseUnits(value.toString(), 18)
-const bigNumberify = (value: any) => BigNumber.from(value)
-
-const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
 
 describe('UniswapV2Pair', () => {
   let factory: UniswapV2Factory

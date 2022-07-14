@@ -171,7 +171,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         }
         require(liquidity > 0, "UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED");
         _mint(to, liquidity);
-
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
@@ -204,7 +203,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _safeTransfer(_token1, to, amount1);
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));
-
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
@@ -266,7 +264,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
                 "UniswapV2: K"
             );
         }
-
         _update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }

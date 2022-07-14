@@ -2,6 +2,7 @@ import { BigNumber, Contract, ethers } from 'ethers'
 import {
   defaultAbiCoder,
   keccak256,
+  parseUnits,
   solidityPack,
   toUtf8Bytes,
 } from 'ethers/lib/utils'
@@ -103,3 +104,10 @@ export function encodePrice(reserve0: BigNumber, reserve1: BigNumber) {
     reserve0.mul(BigNumber.from(2).pow(112)).div(reserve1),
   ]
 }
+
+export const expandTo18Decimals = (value: number) =>
+  parseUnits(value.toString(), 18)
+
+export const bigNumberify = (value: any) => BigNumber.from(value)
+
+export const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
