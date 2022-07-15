@@ -4,14 +4,15 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from 'hardhat'
-import { deployAndVerify, DeployAndVerifyOptions } from './deploy'
+import { UniswapV2Factory, UniswapV2Router02, WETH9 } from '../typechain'
+import { deployAndVerify, DeployAndVerifyOptions } from './utillities'
 
-async function main() {
+export async function main() {
   const options: DeployAndVerifyOptions = {
     delayTimer: 10000,
   }
   // deploy weth
-  const wethAddress = await deployAndVerify(
+  const weth = await deployAndVerify<WETH9>(
     {
       name: 'WETH9',
       params: [],
@@ -20,7 +21,7 @@ async function main() {
   )
   // deploy factory
   const [signer] = await ethers.getSigners()
-  const factoryAddress = await deployAndVerify(
+  const factory = await deployAndVerify<UniswapV2Factory>(
     {
       name: 'UniswapV2Factory',
       params: [signer.address],
@@ -28,18 +29,16 @@ async function main() {
     options
   )
   // deploy routerv2
-  const routerAddress = await deployAndVerify(
+  const router = await deployAndVerify<UniswapV2Router02>(
     {
       name: 'UniswapV2Router02',
-      params: [factoryAddress, wethAddress],
+      params: [factory.address, weth.address],
     },
     options
   )
+  return {
+    weth,
+    factory,
+    router,
+  }
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})

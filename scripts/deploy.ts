@@ -1,67 +1,37 @@
+import { main as deployUni } from './deployUni'
+import { main as deployTokens } from './deployTokens'
 import { constants } from 'ethers'
-import { ethers, run } from 'hardhat'
+import { parseUnits } from 'ethers/lib/utils'
+import { ethers } from 'hardhat'
 
-export interface DeployItem {
-  name: string
-  params: any[]
-}
-
-export interface DeployAndVerifyOptions {
-  delayTimer?: number
-}
-
-export async function deploy(item: DeployItem): Promise<string> {
-  try {
-    console.log(`[deploy] starting deploy contract ${item.name}`)
-    const factory = await ethers.getContractFactory(item.name)
-    if (!factory) {
-      return constants.AddressZero
+async function main() {
+  // deploy uni contracts
+  const { weth, factory, router } = await deployUni()
+  // deploy token contracts
+  const tokens = await deployTokens()
+  const [signer] = await ethers.getSigners()
+  for (let token of tokens) {
+    try {
+      // mint for creator
+      if (token.address === constants.AddressZero || !token.contract) {
+        continue
+      }
+      const value = '100000'
+      await token.contract.mint(parseUnits(value, 18))
+      const tokenName = await token.contract.name()
+      console.log(`[mint] mint ${value}${tokenName} for ${signer.address}`)
+      // approve for router
+      await token.contract.approve(router.address, constants.MaxUint256)
+      console.log(
+        `[approve] approved max for ${signer.address} to spend your ${tokenName}`
+      )
+    } catch (error) {
+      console.error(`${token.address} process failed [reason: ${error}]`)
     }
-
-    const contract = await factory.deploy.apply(factory, item.params)
-    await contract.deployed()
-    console.log(
-      `[deploy] success deploy contract ${item.name} to ${contract.address}`
-    )
-    return contract.address
-  } catch (error) {
-    console.error(
-      `[deploy] failed deploy contract ${item.name} [reason: ${error}]`
-    )
-    return constants.AddressZero
   }
 }
 
-export async function verify(item: DeployItem, address: string) {
-  try {
-    console.log(`[verify] starting verify contract ${item.name}`)
-    await run('verify:verify', {
-      address: address,
-      constructorArguments: item.params,
-    })
-    console.log(`[verify] success verify contract ${item.name}:${address}`)
-  } catch (error) {
-    console.error(
-      `[verify] failed verify contract ${item.name}:${address} [reason: ${error}]`
-    )
-  }
-}
-
-export async function deployAndVerify(
-  item: DeployItem,
-  options?: DeployAndVerifyOptions
-): Promise<string> {
-  const address = await deploy(item)
-  if (address === constants.AddressZero) {
-    return address
-  }
-  options && options.delayTimer && (await delay(options.delayTimer))
-  await verify(item, address)
-  return address
-}
-
-async function delay(time: number) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, time)
-  })
-}
+main().catch((error) => {
+  console.error(error)
+  process.exitCode = 1
+})
